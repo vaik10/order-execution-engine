@@ -28,7 +28,7 @@
     "docker:build": "docker build -t order-execution-engine .",
     "docker:run": "docker run -p 3000:3000 -d order-execution-engine",
     "premigrate": "npm run build",
-    "migrate": "node ./dist/migrate",
+    "migrate": "ts-node src/migrations/init-db.ts",
     "preopenapi-spec": "npm run build",
     "openapi-spec": "node ./dist/openapi-spec",
     "prestart": "npm run rebuild",
@@ -58,6 +58,7 @@
     "dotenv": "^17.2.3",
     "ioredis": "^5.8.2",
     "loopback-connector-postgresql": "^8.0.3",
+    "pg": "^8.16.3",
     "tslib": "^2.0.0"
   },
   "devDependencies": {
@@ -67,6 +68,7 @@
     "@types/ioredis": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^16.18.126",
+    "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.3",
     "eslint": "^8.57.1",
     "jest": "^30.2.0",
