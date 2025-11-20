@@ -9,6 +9,7 @@ import {RestApplication} from '@loopback/rest';
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
+import {PostgresDataSource} from './datasources/postgres.datasource';
 
 export {ApplicationConfig};
 
@@ -40,5 +41,7 @@ export class OrderExecutionEngineApplication extends BootMixin(
         nested: true,
       },
     };
+
+    this.dataSource(PostgresDataSource);
   }
 }
