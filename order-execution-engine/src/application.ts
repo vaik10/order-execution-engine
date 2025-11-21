@@ -11,6 +11,7 @@ import path from 'path';
 import {MySequence} from './sequence';
 import {PostgresDataSource} from './datasources/postgres.datasource';
 import {OrderRepository} from './repositories';
+import {OrderService} from './services/order.service';
 
 export {ApplicationConfig};
 
@@ -46,5 +47,7 @@ export class OrderExecutionEngineApplication extends BootMixin(
     this.dataSource(PostgresDataSource);
 
     this.repository(OrderRepository);
+
+    this.service(OrderService);
   }
 }
