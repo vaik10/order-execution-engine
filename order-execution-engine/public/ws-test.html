@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>WS Test</title>
+</head>
+<body>
+  <h3>WS Test</h3>
+  <input id="orderId" placeholder="orderId" style="width:400px"/>
+  <button id="connect">Connect</button>
+  <pre id="log"></pre>
+  <script>
+    const log = msg => {
+      const p = document.getElementById('log');
+      p.textContent += msg + "\n";
+    };
+
+    document.getElementById('connect').onclick = () => {
+      const id = document.getElementById('orderId').value.trim();
+      if (!id) return alert('enter orderId');
+      const ws = new WebSocket(`ws://localhost:3000/ws?orderId=${id}`);
+      ws.onopen = () => log('open');
+      ws.onmessage = ev => log('msg: ' + ev.data);
+      ws.onclose = () => log('closed');
+      ws.onerror = e => log('error: ' + JSON.stringify(e));
+    };
+  </script>
+</body>
+</html>

@@ -1,4 +1,8 @@
-import {ApplicationConfig, OrderExecutionEngineApplication} from './application';
+import {
+  ApplicationConfig,
+  OrderExecutionEngineApplication,
+} from './application';
+import {WebSocketManager} from './websocket/websocket.manager';
 
 export * from './application';
 
@@ -7,9 +11,16 @@ export async function main(options: ApplicationConfig = {}) {
   await app.boot();
   await app.start();
 
-  const url = app.restServer.url;
-  console.log(`Server is running at ${url}`);
-  console.log(`Try ${url}/ping`);
+  const server = app.restServer.httpServer?.server;
+  console.log(`Server is running at ${server}`);
+  console.log(`Try ${server}/ping`);
+
+  const wsManager = await app.get<WebSocketManager>(
+    'services.WebSocketManager',
+  );
+  wsManager.start(server);
+
+  await app.get('workers.OrderWorker');
 
   return app;
 }

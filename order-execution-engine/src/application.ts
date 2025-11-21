@@ -12,6 +12,8 @@ import {MySequence} from './sequence';
 import {PostgresDataSource} from './datasources/postgres.datasource';
 import {OrderRepository} from './repositories';
 import {OrderService} from './services/order.service';
+import {WebSocketManager} from './websocket/websocket.manager';
+import {OrderWorker} from './workers/order.worker';
 
 export {ApplicationConfig};
 
@@ -49,5 +51,9 @@ export class OrderExecutionEngineApplication extends BootMixin(
     this.repository(OrderRepository);
 
     this.service(OrderService);
+
+    this.service(WebSocketManager);
+
+    this.bind('workers.OrderWorker').toClass(OrderWorker);
   }
 }
