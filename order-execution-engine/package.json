@@ -55,6 +55,7 @@
     "@loopback/rest": "^14.0.11",
     "@loopback/rest-explorer": "^7.0.11",
     "@loopback/service-proxy": "^7.0.11",
+    "bullmq": "^5.64.1",
     "crypto": "^1.0.1",
     "dotenv": "^17.2.3",
     "ioredis": "^5.8.2",
