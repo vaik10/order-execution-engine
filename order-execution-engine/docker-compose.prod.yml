@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: oee_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-order_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-order_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-order_engine}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: oee_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+
+  app:
+    image: ${DOCKER_IMAGE:-order-execution-engine:latest}
+    container_name: oee_app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+      # Postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-order_user}
+      DB_PASSWORD: ${DB_PASSWORD:-order_pass}
+      DB_NAME: ${DB_NAME:-order_engine}
+      DATABASE_URL: ${DATABASE_URL:-}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Optional Raydium/devnet toggles
+      USE_REAL_DEX: ${USE_REAL_DEX:-false}
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-}
+      WALLET_SECRET_KEY: ${WALLET_SECRET_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./:/usr/src/app:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  migrate:
+    build: .
+    command: npm run migrate
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: order_user
+      DB_PASSWORD: order_pass
+      DB_NAME: order_engine
+      
+volumes:
+  pgdata:
+  redisdata:
