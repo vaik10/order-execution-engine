@@ -14,8 +14,6 @@ import {OrderRepository} from './repositories';
 import {OrderService} from './services/order.service';
 import {WebSocketManager} from './websocket/websocket.manager';
 import {OrderWorker} from './workers/order.worker';
-import {RaydiumAdapter} from './services/raydium.adapter';
-import {MeteoraAdapter} from './services/meteora.adapter';
 import {DexRouter} from './services/dex.router';
 import {MockRaydiumAdapter} from './services/mock-raydium.adapter';
 import {MockMeteoraAdapter} from './services/mock-meteora.adapter';
