@@ -1,0 +1,37 @@
+{
+	"info": {
+		"_postman_id": "69d1b80b-b1dd-4ee7-bb02-393f6c559351",
+		"name": "URL",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "34431703"
+	},
+	"item": [
+		{
+			"name": "OEE",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\": \"https://example.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "https://order-execution-engine-1-s64d.onrender.com/api/orders/execute"
+			},
+			"response": []
+		},
+		{
+			"name": "GET URL",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "https://order-execution-engine-1-s64d.onrender.com/ping"
+			},
+			"response": []
+		}
+	]
+}
