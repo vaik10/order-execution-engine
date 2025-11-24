@@ -3,7 +3,7 @@ import {injectable, BindingScope} from '@loopback/core';
 @injectable({scope: BindingScope.SINGLETON})
 export class MockMeteoraAdapter {
   async getQuote(tokenIn: string, tokenOut: string, amountIn: number) {
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 200));
 
     const basePrice = 1.0;
     const price = basePrice * (0.97 + Math.random() * 0.05);
@@ -17,7 +17,7 @@ export class MockMeteoraAdapter {
   }
 
   async executeSwap(amountIn: number, minAmountOut: number) {
-    await new Promise(r => setTimeout(r, 4000 + Math.random() * 1000));
+    await new Promise(r => setTimeout(r, 400 + Math.random() * 1000));
 
     const finalPrice = 1.0 * (0.97 + Math.random() * 0.05);
     const executedOut = amountIn * finalPrice;

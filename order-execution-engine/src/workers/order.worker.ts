@@ -82,7 +82,7 @@ export class OrderWorker {
   async process(orderId: string, job: Job) {
     // Send initial pending (order row should already be pending)
     try {
-      await new Promise(r => setTimeout(r, 5000));
+      await new Promise(r => setTimeout(r, 500));
       this.wsManager.send(orderId, {status: 'pending'});
     } catch (err) {
       console.warn('[Worker] ws send pending failed', err);

@@ -2,9 +2,17 @@ import {injectable, BindingScope} from '@loopback/core';
 
 @injectable({scope: BindingScope.SINGLETON})
 export class MockRaydiumAdapter {
-  async getQuote(tokenIn: string, tokenOut: string, amountIn: number) {
+  async getQuote(
+    tokenIn: string,
+    tokenOut: string,
+    amountIn: number,
+  ): Promise<{
+    price: number;
+    amountOut: number;
+    fee: number;
+  }> {
     // Simulate 200ms latency
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 200));
 
     const basePrice = 1.0; // assume 1:1 reference
     const price = basePrice * (0.98 + Math.random() * 0.04); //  ±2% randomness
@@ -19,7 +27,7 @@ export class MockRaydiumAdapter {
 
   async executeSwap(amountIn: number, minAmountOut: number) {
     // Simulate 4–5 second processing delay
-    await new Promise(r => setTimeout(r, 4000 + Math.random() * 1000));
+    await new Promise(r => setTimeout(r, 400 + Math.random() * 1000));
 
     const finalPrice = 1.0 * (0.98 + Math.random() * 0.04);
     const executedOut = amountIn * finalPrice;
