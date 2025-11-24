@@ -7,6 +7,7 @@ import {WebSocketManager} from '../websocket/websocket.manager';
 import {DexRouter} from '../services/dex.router';
 import {MockRaydiumAdapter} from '../services/mock-raydium.adapter';
 import {MockMeteoraAdapter} from '../services/mock-meteora.adapter';
+import {logger} from '../helpers/logger';
 
 dotenv.config();
 
@@ -41,13 +42,13 @@ export class OrderWorker {
     @inject('services.MockMeteoraAdapter')
     private meteoraAdapter: MockMeteoraAdapter,
   ) {
-    console.log('[Worker] Initializing OrderWorker...');
+    logger.info('[Worker] Initializing OrderWorker...');
 
     this.worker = new Worker(
       'order-execution',
       async (job: Job) => {
         const {orderId} = job.data;
-        console.log(
+        logger.debug(
           `[Worker] Received job for order ${orderId} (job id=${job.id}) attemptsMade=${job.attemptsMade}`,
         );
         return this.process(orderId, job);
@@ -62,18 +63,18 @@ export class OrderWorker {
     );
 
     this.worker.on('completed', job => {
-      console.log(`[Worker] Job completed: ${job?.id}`);
+      logger.info(`[Worker] Job completed: ${job?.id}`);
     });
 
     this.worker.on('failed', (job, err) => {
-      console.error(`[Worker] Job failed: ${job?.id}`, err?.message || err);
+      logger.error(err?.message || err, `[Worker] Job failed: ${job?.id}`);
     });
 
     this.worker.on('error', err => {
-      console.error('[Worker] Worker error:', err);
+      logger.error(err, '[Worker] Worker error:');
     });
 
-    console.log('[Worker] Started');
+    logger.info('[Worker] Started');
   }
 
   /**
@@ -81,11 +82,13 @@ export class OrderWorker {
    */
   async process(orderId: string, job: Job) {
     // Send initial pending (order row should already be pending)
+    logger.info({orderId, attempt: job.attemptsMade}, '[Worker] Starting job');
+
     try {
       await new Promise(r => setTimeout(r, 500));
       this.wsManager.send(orderId, {status: 'pending'});
     } catch (err) {
-      console.warn('[Worker] ws send pending failed', err);
+      logger.warn('[Worker] ws send pending failed', err);
     }
 
     // Load order
@@ -93,7 +96,7 @@ export class OrderWorker {
     try {
       order = await this.orderRepo.findById(orderId);
     } catch (err) {
-      console.error(`[Worker] Failed to load order ${orderId}:`, err);
+      logger.error(err, `[Worker] Failed to load order ${orderId}:`);
       // Fatal - cannot continue, throw to let BullMQ retry if desired
       throw err;
     }
@@ -101,7 +104,7 @@ export class OrderWorker {
     // ROUTING
     try {
       this.wsManager.send(orderId, {status: 'routing'});
-      console.log(
+      logger.info(
         `[Worker] routing for order ${orderId} tokenIn=${order.tokenIn} tokenOut=${order.tokenOut} amount=${order.amountIn}`,
       );
 
@@ -120,7 +123,7 @@ export class OrderWorker {
       });
 
       this.wsManager.send(orderId, {status: 'routing', chosenDex, quote});
-      console.log(
+      logger.info(
         `[Worker] route decision for order ${orderId}: ${chosenDex}`,
         quote,
       );
@@ -158,7 +161,10 @@ export class OrderWorker {
         executedPrice: execResult.executedPrice,
         executedAmountOut: execResult.executedAmountOut,
       });
-
+      logger.info(
+        {orderId, txHash: execResult.txHash},
+        '[Worker] Status: confirmed',
+      );
       // persist success
       await this.orderRepo.updateById(orderId, {
         status: 'confirmed',
@@ -167,24 +173,21 @@ export class OrderWorker {
         updatedAt: new Date().toISOString(),
       });
 
-      console.log(
+      logger.info(
         `[Worker] Order ${orderId} confirmed tx ${execResult.txHash}`,
       );
 
       return true;
     } catch (err: any) {
       const attempts = job.attemptsMade || 0;
-      console.error(
-        `[Worker] Order ${orderId} execution error (attemptsMade=${attempts}):`,
-        err?.message || err,
-      );
+      logger.error({orderId, error: err.message}, '[Worker] Execution failed');
 
       // If the job still has retries left, rethrow so BullMQ will retry according to job options.
       // The queue should be configured with attempts: 3 (done earlier in order.queue.ts).
       // If attempts exhausted, persist failure and emit failed event.
       const maxAttempts = 3; // reflects queue policy
       if (attempts < maxAttempts) {
-        console.log(
+        logger.warn(
           `[Worker] Will allow BullMQ to retry order ${orderId} (attempt #${attempts + 1})`,
         );
         // Don't update DB to failed yet; let retry occur. Rethrow to mark this attempt as failed.
@@ -199,9 +202,9 @@ export class OrderWorker {
             updatedAt: new Date().toISOString(),
           });
         } catch (upErr) {
-          console.error(
-            `[Worker] Failed to persist failure for order ${orderId}:`,
-            upErr,
+          logger.error(
+            {orderId},
+            '[Worker] Status: failed; max retries reached',
           );
         }
 
@@ -211,7 +214,7 @@ export class OrderWorker {
             error: failureReason,
           });
         } catch (wsErr) {
-          console.warn('[Worker] ws send failed event failed', wsErr);
+          logger.warn('[Worker] ws send failed event failed', wsErr);
         }
 
         // Throw to inform BullMQ but attempts exhausted already.

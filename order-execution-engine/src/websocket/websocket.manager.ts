@@ -1,5 +1,6 @@
 import {injectable, BindingScope} from '@loopback/core';
 import WebSocket, {WebSocketServer} from 'ws';
+import {logger} from '../helpers/logger';
 
 @injectable({scope: BindingScope.SINGLETON})
 export class WebSocketManager {
@@ -28,7 +29,7 @@ export class WebSocketManager {
     });
 
     this.wss.on('connection', (ws: WebSocket, orderId: string) => {
-      console.log(`WS connected for order ${orderId}`);
+      logger.info({orderId}, '[WS] Client connected');
 
       if (!this.connections.has(orderId)) {
         this.connections.set(orderId, new Set());
@@ -37,20 +38,22 @@ export class WebSocketManager {
 
       ws.on('close', () => {
         this.connections.get(orderId)?.delete(ws);
+        logger.info({orderId}, '[WS] Client disconnected');
       });
     });
   }
 
   send(orderId: string, data: any) {
-    console.log(`[WS] send called for ${orderId} -> ${JSON.stringify(data)}`);
+    logger.debug(`[WS] send called for ${orderId} -> ${JSON.stringify(data)}`);
     const serialized = JSON.stringify(data);
 
     const sockets = this.connections.get(orderId);
-    console.log('[WS] sockets found?', sockets ? sockets.size : 0);
+    logger.info(`[WS] sockets found: ${sockets ? sockets.size : 0} `);
     if (!sockets) return;
 
     for (const ws of sockets) {
       if (ws.readyState === WebSocket.OPEN) {
+        logger.debug({orderId, data}, '[WS] Sending event');
         ws.send(serialized);
       }
     }

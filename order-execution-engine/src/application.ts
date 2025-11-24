@@ -19,6 +19,7 @@ import {MeteoraAdapter} from './services/meteora.adapter';
 import {DexRouter} from './services/dex.router';
 import {MockRaydiumAdapter} from './services/mock-raydium.adapter';
 import {MockMeteoraAdapter} from './services/mock-meteora.adapter';
+import {logger} from './helpers/logger';
 
 export {ApplicationConfig};
 
@@ -27,6 +28,8 @@ export class OrderExecutionEngineApplication extends BootMixin(
 ) {
   constructor(options: ApplicationConfig = {}) {
     super(options);
+
+    logger.info('🚀 Booting Order Execution Engine Application...');
 
     // Set up the custom sequence
     this.sequence(MySequence);

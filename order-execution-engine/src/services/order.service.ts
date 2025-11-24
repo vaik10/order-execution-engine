@@ -5,7 +5,7 @@ import {v4 as uuidv4} from 'uuid';
 import {ExecuteOrderRequest} from '../controllers/dtos/order-execute.dto';
 import {Order} from '../models';
 import {orderQueue, ORDER_QUEUE_NAME} from '../queues/order.queue';
-
+import {logger} from '../helpers/logger';
 @injectable({scope: BindingScope.SINGLETON})
 export class OrderService {
   constructor(
@@ -15,6 +15,8 @@ export class OrderService {
 
   async createPendingOrder(payload: ExecuteOrderRequest): Promise<Order> {
     const id = uuidv4();
+
+    logger.info({id, payload}, '[OrderService] Creating new order');
 
     const order = await this.orderRepo.create({
       id,
@@ -27,6 +29,8 @@ export class OrderService {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+
+    logger.info({id}, '[OrderService] Enqueuing order');
 
     await orderQueue.add('execute-order', {
       orderId: id,
