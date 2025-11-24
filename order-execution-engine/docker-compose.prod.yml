@@ -6,9 +6,9 @@ services:
     container_name: oee_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-order_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-order_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-order_engine}
+      DB_USER: ${DB_USER:-order_user}
+      DB_PASSWORD: ${DB_PASSWORD:-order_pass}
+      DB_NAME: ${DB_NAME:-order_engine}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -43,8 +43,7 @@ services:
       DB_NAME: ${DB_NAME:-order_engine}
       DATABASE_URL: ${DATABASE_URL:-}
       # Redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_URL: ${REDIS_URL:-redis://red-d4i3vs2dbo4c73bpmi80:6379}
       # Optional Raydium/devnet toggles
       USE_REAL_DEX: ${USE_REAL_DEX:-false}
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-}
@@ -68,7 +67,7 @@ services:
       DB_USER: order_user
       DB_PASSWORD: order_pass
       DB_NAME: order_engine
-      
+
 volumes:
   pgdata:
   redisdata:
